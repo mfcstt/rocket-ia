@@ -1,0 +1,7 @@
+export interface Stack {
+  id: string
+  name: string
+  icon: string
+  createdAt: Date
+  updatedAt: Date
+}

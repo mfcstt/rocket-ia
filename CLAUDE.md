@@ -10,3 +10,5 @@ For complete setup and usage instructions, see [AGENTS.md](./AGENTS.md), which i
 - Project structure details
 - Mastra skills usage
 - Links to relevant documentation
+
+See [general.md] for rules
