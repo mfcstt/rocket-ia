@@ -1,8 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { DefaultChatTransport } from "ai"
-import { useChat } from "@ai-sdk/react"
 import { useRouter } from "next/navigation"
 
 import {
@@ -19,9 +17,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+
+import { useChat } from '@ai-sdk/react'
+
 import { StackSelector } from "@/app/stacks/_components/stack-selector"
 import { ChatNavbar } from "./chat-navbar"
 import { BottomNavigation } from "./bottom-navigation"
+import { DefaultChatTransport } from "ai"
 
 interface StackItem {
   id: string
@@ -30,33 +32,43 @@ interface StackItem {
 }
 
 interface ChatProps {
+  id: string
   stackId: string
   stackName: string
   stacks: StackItem[]
 }
 
-function Chat({ stackId, stackName, stacks }: ChatProps) {
+function Chat({ stackId, stackName, stacks, id }: ChatProps) {
   const [input, setInput] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
+
   const router = useRouter()
 
-  const { messages, setMessages, sendMessage, status } = useChat({
-    transport: new DefaultChatTransport({
-      api: "/api/chat",
-      body: { stackName },
-    }),
-  })
+  
+const { messages, setMessages, sendMessage, status } = useChat({
+  transport: new DefaultChatTransport({
+    api: `/api/chat/${id}`,
+  }),
+})
 
-  useEffect(() => {
-    const fetchMessages = async () => {
-      const res = await fetch("/api/chat")
+useEffect(() => {
+  async function loadMessages() {
+    try {
+      const res = await fetch(`/api/chat/${id}`)
       const data = await res.json()
-      setMessages([...data])
+      setMessages(data) 
+    } catch (error) {
+      console.error("Error fetching chat data:", error)
     }
-    fetchMessages()
-  }, [setMessages])
+  }
 
-  const handleSubmit = () => {
+  if (id) {
+    loadMessages()
+  }
+}, [id, setMessages])
+
+
+ const handleSubmit = () => {
     if (!input.trim()) return
     sendMessage({ text: input })
     setInput("")
@@ -68,23 +80,25 @@ function Chat({ stackId, stackName, stacks }: ChatProps) {
       handleSubmit()
     }
   }
+ 
 
   return (
-    <div className="flex h-dvh flex-col bg-background">
-      <div className="flex flex-1 flex-col overflow-hidden px-5 pt-10">
-        <ChatNavbar onSwitchStack={() => setDialogOpen(true)} />
+    <main className="mx-auto flex h-dvh w-full max-w-97.5 flex-col justify-between px-5 py-10">
 
-        <Conversation className="mt-4 flex-1">
-          <ConversationContent className="gap-4">
-            <div className="text-base leading-relaxed text-text-body">
-              <p>Olá, Dev!</p>
-              <p>
-                Vamos começar seus estudos sobre{" "}
-                <strong>{stackName.toUpperCase()}</strong>?
-              </p>
-            </div>
+      <ChatNavbar onSwitchStack={() => setDialogOpen(true)} />
 
-            {messages.map((message) => (
+      <Conversation className="mt-4 flex-1">
+        <ConversationContent className="gap-4">
+          <div className="text-base leading-relaxed text-text-body">
+            <p>Olá, Dev!</p>
+            <p>
+              Vamos começar seus estudos sobre{" "}
+              <span className="font-semibold">{stackName}</span>
+            
+            </p>
+          </div>
+
+          {messages.map((message) => (
               <div key={message.id} className="flex flex-col gap-3">
                 {message.parts?.map((part, i) => {
                   if (part.type !== "text") return null
@@ -112,28 +126,28 @@ function Chat({ stackId, stackName, stacks }: ChatProps) {
               </div>
             ))}
 
-            <ConversationScrollButton />
-          </ConversationContent>
-        </Conversation>
+          <ConversationScrollButton />
+        </ConversationContent>
+      </Conversation>
 
-        <div className="flex flex-col gap-3 pb-4 pt-3">
-          <Textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={`Qual a sua dúvida sobre ${stackName.toUpperCase()}?`}
-            disabled={status !== "ready"}
-            className="min-h-20 resize-none"
-          />
-          <Button
-            onClick={handleSubmit}
-            disabled={!input.trim() || status !== "ready"}
-            className="w-full p-3 text-base font-semibold"
-            size="lg"
-          >
-            Enviar
-          </Button>
-        </div>
+      <div className="flex flex-col gap-3 pb-4 pt-3">
+        <Textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={`Qual a sua dúvida sobre ${stackName.toUpperCase()}?`}
+           disabled={status !== "ready"}
+
+        
+          className="min-h-20 resize-none"
+        />
+
+        <Button
+          className="w-full p-3 text-base font-semibold"
+          size="lg"
+        >
+          Enviar
+        </Button>
       </div>
 
       <BottomNavigation />
@@ -145,17 +159,17 @@ function Chat({ stackId, stackName, stacks }: ChatProps) {
           </DialogHeader>
           <StackSelector
             stacks={stacks}
-            onConfirm={(stack) => {
-              setDialogOpen(false)
-              // Garantir que o redirecionamento ocorra corretamente
-              setTimeout(() => {
-                router.push(`/chat?stackId=${stack.id}&stackName=${encodeURIComponent(stack.name)}`)
-              }, 0)
+            selectedId={stackId}
+            onSelect={(newStackId) => {
+              const selectedStack = stacks.find((s) => s.id === newStackId)
+              if (!selectedStack) return
+              router.push(`/chat/${id}?stackId=${selectedStack.id}&stackName=${selectedStack.name}`)
             }}
+
           />
         </DialogContent>
       </Dialog>
-    </div>
+    </main>
   )
 }
 

@@ -3,24 +3,25 @@ import { PrismaStackRepository } from "@/app/core/database/prisma/prisma-stack-r
 import Chat from "../_components/chat"
 
 export default async function ChatPage({
+  params,
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined }
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ stackId?: string; stackName?: string }>
 }) {
+  const { id } = await params
   const { stackId, stackName } = await searchParams
-
-  if (!stackId || !stackName) {
-    redirect("/stacks")
-  }
 
   const repository = new PrismaStackRepository()
   const stacks = await repository.findAll()
 
-  return (
-    <Chat
-      stackId={stackId as string}
-      stackName={stackName as string}
-      stacks={stacks.map((s) => ({ id: s.id, name: s.name, icon: s.icon }))}
+  return <div>
+    <Chat 
+    stackId={stackId as string} 
+    stackName={stackName as string} 
+    id={id as string} 
+    stacks={stacks.map((s) => ({ id: s.id, name: s.name, icon: s.icon }))} 
     />
-  )
+    </div>
+
 }

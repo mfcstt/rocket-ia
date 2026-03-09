@@ -16,7 +16,8 @@ export function BottomNavigation() {
         <Sparkles
           className={cn(
             "size-6",
-            pathname === "/chat" ? "text-primary" : "text-text-span"
+            // pega o utlimo chat
+            pathname === `/chat/${searchParams.get("id")}` ? "text-primary" : "text-text-span"
           )}
         />
         <span

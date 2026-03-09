@@ -1,10 +1,9 @@
-import type { Chat } from "../entities/chat"
-import type { Message } from "../entities/messages"
+import type { Chat } from "@/generated/prisma/client"
 
 export interface ChatRepository {
   createChat(data: {
     id: string
     stackId: string
-    messages?: Message[]
+    // Relacionamento com mastra_messages será feito via campo chatId
   }): Promise<Chat>
 }

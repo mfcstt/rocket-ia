@@ -1,20 +1,20 @@
-
 import { Mastra } from '@mastra/core/mastra';
 import { PinoLogger } from '@mastra/loggers';
-import { LibSQLStore } from '@mastra/libsql';
 import { Observability, DefaultExporter, CloudExporter, SensitiveDataFilter } from '@mastra/observability';
 import { rocketIA } from './agents/rocket-ia';
 import { PostgresStore } from '@mastra/pg'
+
+export const storage = new PostgresStore({
+  id: "pg-store",
+  connectionString: process.env.DATABASE_URL,
+})
 
 
 export const mastra = new Mastra({
   workflows: {  },
   agents: {rocketIA},
-  storage: new PostgresStore({
-    id: "pg-store",
-    connectionString: process.env.DATABASE_URL,
-  }),
-   logger: new PinoLogger({
+  storage: storage,
+  logger: new PinoLogger({
     name: 'Mastra',
     level: 'info',
   }),

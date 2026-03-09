@@ -17,25 +17,10 @@ model Chat {
   stackId String @db.Uuid
   stack   Stack  @relation(fields: [stackId], references: [id])
 
-  messages Message[]
+  // Relacionamento com mastra_messages será feito via campo chatId em mastra_messages
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
-
-model Message {
-  id String @id @default(uuid())
-
-  chatId String
-  chat   Chat   @relation(fields: [chatId], references: [id])
-
-  content String
-  role    Role
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([chatId])
 }
 
 model Stack {
